@@ -5,12 +5,14 @@ spring:
   profiles:
     active: test
   datasource:
-    url: jdbc:h2:mem:mydb
+    url: jdbc:h2:mem:db
     username: test
     password: test
     driverClassName: org.h2.Driver
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create
 
 bot:
   username: test_username

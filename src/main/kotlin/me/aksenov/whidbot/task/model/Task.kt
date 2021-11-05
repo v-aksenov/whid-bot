@@ -1,20 +1,18 @@
 package me.aksenov.whidbot.task.model
 
 import java.sql.Timestamp
-import javax.persistence.Column
-import javax.persistence.Entity
-import javax.persistence.GeneratedValue
-import javax.persistence.Id
+import java.time.Instant
+import javax.persistence.*
 
 @Entity
 data class Task(
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Int? = null,
     @Column
-    val created: Timestamp? = null,
+    val created: Timestamp = Timestamp.from(Instant.now()),
     @Column(name = "spent_minutes")
-    val spentMinutes: Int? = null,
+    val spentMinutes: Int = 0,
     @Column
     val message: String? = null,
     @Column(name = "telegram_id")

@@ -1,5 +1,6 @@
 package me.aksenov.whidbot.telegram
 
+import me.aksenov.whidbot.task.TaskService
 import me.aksenov.whidbot.utils.Logger
 import org.springframework.stereotype.Service
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
@@ -9,10 +10,13 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession
 import javax.annotation.PostConstruct
 
 @Service
-class Bot(private val telegramProperties: TelegramProperties) : TelegramLongPollingBot(), Logger {
+class Bot(
+    private val telegramProperties: TelegramProperties,
+    private val taskService: TaskService
+) : TelegramLongPollingBot(), Logger {
 
     override fun onUpdateReceived(update: Update) {
-        log.info(update.toString())
+        taskService.addTaskFrom(update.message.text, update.message.chatId.toString())
     }
 
     override fun getBotUsername(): String = telegramProperties.username
