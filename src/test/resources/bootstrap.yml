@@ -1,5 +1,18 @@
 spring:
-  application:
-    name: whid-bot
-  config:
-    import: http://localhost:8888/
+  cloud:
+    config:
+      enabled: false
+  profiles:
+    active: test
+  datasource:
+    url: jdbc:h2:mem:mydb
+    username: test
+    password: test
+    driverClassName: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+
+bot:
+  username: test_username
+  token: test_token
+  active: false
