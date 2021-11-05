@@ -19,7 +19,7 @@ jobs:
         
       # set up xml path for code climate
       - name: set up xml path for code climate
-        run: JACOCO_SOURCE_PATH=src/main/kotlin ./cc-test-reporter format-coverage ./build/reports/jacoco/test/jacocoTestReport.xml --input-type jacoco
+        run: JACOCO_SOURCE_PATH=src/main/kotlin ./surefire-reports format-coverage ./build/reports/jacoco/test/jacocoTestReport.xml --input-type jacoco
 
       # upload coverage on code climate
       - name: upload jacoco report
