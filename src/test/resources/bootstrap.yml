@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: whid-bot
+  config:
+    import: http://localhost:8888/
