@@ -15,3 +15,12 @@ jobs:
           distribution: 'adopt'
       - name: Build with Maven
         run: mvn --batch-mode --update-snapshots verify
+        
+        
+      # set up xml path for code climate
+      - name: set up xml path for code climate
+        run: JACOCO_SOURCE_PATH=src/main/kotlin ./cc-test-reporter format-coverage ./build/reports/jacoco/test/jacocoTestReport.xml --input-type jacoco
+
+      # upload coverage on code climate
+      - name: upload jacoco report
+        run: ./cc-test-reporter upload-coverage -r ${{ secrets.CC_TEST_REPORTER_ID }}
