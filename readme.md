@@ -5,4 +5,4 @@
 [![Test Coverage](https://api.codeclimate.com/v1/badges/2ac2cd9d891472d1175b/test_coverage)](https://codeclimate.com/github/v-aksenov/whid-bot/test_coverage)
 
 ### Pipeline with checks status
-![Linter](https://github.com/v-aksenov/whid-bot/actions/workflows/test-ci.yml/badge.svg)
+![Tests](https://github.com/v-aksenov/whid-bot/actions/workflows/tests.yml/badge.svg)
