@@ -11,4 +11,6 @@ interface TaskDao : JpaRepository<Task, Long> {
     fun deleteAllByMessageAndTelegramId(message: String, telegramId: String)
 
     fun getAllByMessageAndTelegramId(message: String, telegramId: String): List<Task>
+
+    fun getAllByTelegramId(telegramId: String): List<Task>
 }
