@@ -14,13 +14,16 @@ jobs:
           java-version: '17'
           distribution: 'adopt'
       - name: Build with Maven
-        run: mvn test jacoco:report
+        run: mvn clean compile
         
         
-      # set up xml path for code climate
-      - name: set up xml path for code climate
-        run: JACOCO_SOURCE_PATH=src/main/kotlin ./target/site/jacoco/jacoco.xml format-coverage ./cc --input-type jacoco
-
-      # upload coverage on code climate
-      - name: upload jacoco report
-        run: ./cc upload-coverage -r ${{ secrets.CC_TEST_REPORTER_ID }}
+      - name: Test & publish code coverage
+        uses: paambaati/codeclimate-action@v3.0.0
+          env:
+            # Set CC_TEST_REPORTER_ID as secret of your repo
+            CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
+            JACOCO_SOURCE_PATH: "${{github.workspace}}/src/main/java"
+        with:
+          # The report file must be there, otherwise Code Climate won't find it
+          coverageCommand: mvn test
+          coverageLocations: ${{github.workspace}}/target/site/jacoco/jacoco.xml:jacoco
