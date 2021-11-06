@@ -1,6 +1,5 @@
 package me.aksenov.whidbot.telegram
 
-import me.aksenov.whidbot.task.TaskService
 import me.aksenov.whidbot.utils.Logger
 import org.springframework.stereotype.Service
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
@@ -13,16 +12,11 @@ import javax.annotation.PostConstruct
 @Service
 class Bot(
     private val telegramProperties: TelegramProperties,
-    private val taskService: TaskService
+    private val botService: BotService
 ) : TelegramLongPollingBot(), Logger {
 
     override fun onUpdateReceived(update: Update) {
-        update.message.run {
-            when {
-                text.startsWith("/get") -> chatId.toString().let { send(it, taskService.getTasks(it).toString()) }
-                else -> taskService.addTaskFrom(text, chatId.toString())
-            }
-        }
+        sendApiMethod(botService.processUpdate(update))
     }
 
     private fun send(to: String, text: String) {
