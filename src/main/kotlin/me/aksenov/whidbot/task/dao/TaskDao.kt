@@ -21,4 +21,10 @@ interface TaskDao : JpaRepository<Task, Long> {
     @Modifying
     @Query("update Task t set t.spentMinutes = :spentMinutes where t.id = :id")
     fun increaseSpentMinutesForTask(@Param("id") id: Long, @Param("spentMinutes") spentMinutes: Int)
+
+    @Query("select t from Task t where t.telegramId = :telegramId and t.created > DATEADD('DAY',-1, CURRENT_TIMESTAMP)")
+    fun getTasksByTelegramIdAndCreated(@Param("telegramId") telegramId: String): List<Task>
+
+    @Query("select distinct t.telegramId from Task t")
+    fun getDistinctTelegramIds(): List<String>
 }

@@ -47,6 +47,17 @@ class BotTest(private val botService: BotService, private val taskDao: TaskDao) 
 
             taskDao.getById(id).spentMinutes shouldBe 15
         }
+        test("get today tasks") {
+            botService.processUpdate(update)
+
+            botService.getTodayTasks() should {
+                it.size shouldBe 1
+                it.first() should { task ->
+                    task.chatId shouldBe update.message.chatId.toString()
+                    task.text.contains("test text old boy") shouldBe true
+                }
+            }
+        }
     }
 
     private val update = Update().apply {

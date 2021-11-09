@@ -27,11 +27,14 @@ class BotService(private val taskService: TaskService) {
         }
     }
 
+    fun getTodayTasks(): List<SendMessage> =
+        taskService.getTodayTasks()
+            .map { SendMessage(it.key, it.value.joinToString("\n") { task -> task.toMessageBody() }) }
+
     private fun convert(task: Task): SendMessage =
         SendMessage().apply {
             chatId = task.telegramId!!
-            text = task.message!!.substringBefore("\n\n[minutes spent ")
-                .let { "$it\n\n[minutes spent ${task.spentMinutes}]" }
+            text = task.toMessageBody()
             replyMarkup = InlineKeyboardMarkup(listOf(listOf(
                 InlineKeyboardButton().apply {
                     text = "+ 15 min"

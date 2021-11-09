@@ -18,6 +18,9 @@ class TaskService(private val taskDao: TaskDao) : Logger {
             taskDao.increaseSpentMinutesForTask(it.id!!, it.spentMinutes + MINUTES_INCREASE)
             taskDao.getById(it.id)
         }
+
+    fun getTodayTasks(): Map<String, List<Task>> = taskDao.getDistinctTelegramIds()
+        .associateWith { taskDao.getTasksByTelegramIdAndCreated(it) }
 }
 
 private const val MINUTES_INCREASE = 15

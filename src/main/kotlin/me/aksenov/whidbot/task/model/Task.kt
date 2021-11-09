@@ -18,4 +18,8 @@ data class Task(
     val message: String? = null,
     @Column(name = "telegram_id")
     val telegramId: String? = null
-)
+) {
+
+    fun toMessageBody(): String = message!!.substringBefore("\n\n[minutes spent ")
+        .let { "$it\n\n[minutes spent ${spentMinutes}]" }
+}
