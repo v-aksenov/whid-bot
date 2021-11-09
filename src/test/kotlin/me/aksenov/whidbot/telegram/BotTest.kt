@@ -9,18 +9,23 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import me.aksenov.whidbot.task.dao.TaskDao
 import org.springframework.boot.test.context.SpringBootTest
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery
 import org.telegram.telegrambots.meta.api.objects.Chat
 import org.telegram.telegrambots.meta.api.objects.Message
 import org.telegram.telegrambots.meta.api.objects.Update
 
 @SpringBootTest
-class BotTest(private val bot: Bot, private val taskDao: TaskDao) : FunSpec() {
+class BotTest(private val botService: BotService, private val taskDao: TaskDao) : FunSpec() {
 
     override fun extensions() = listOf(SpringExtension)
 
+    override fun afterTest(testCase: TestCase, result: TestResult) {
+        taskDao.deleteAll()
+    }
+
     init {
         test("bot should create task") {
-            bot.onUpdateReceived(update)
+            botService.processUpdate(update)
 
             taskDao.getAllByMessageAndTelegramId(update.message.text, update.message.chatId.toString()) should {
                 it.size shouldBe 1
@@ -33,12 +38,31 @@ class BotTest(private val bot: Bot, private val taskDao: TaskDao) : FunSpec() {
                 }
             }
         }
+        test("increase task spent time") {
+            botService.processUpdate(update)
+
+            val id = taskDao.getAllByMessageAndTelegramId(update.message.text, update.message.chatId.toString())
+                .first().id!!
+            botService.processUpdate(updateIncreaseTime(id))
+
+            taskDao.getById(id).spentMinutes shouldBe 15
+        }
     }
 
     private val update = Update().apply {
         message = Message().apply {
             text = "test text old boy"
             chat = Chat(111, "test chat")
+        }
+    }
+
+    private fun updateIncreaseTime(taskId: Long) = Update().apply {
+        callbackQuery = CallbackQuery().apply {
+            data = "/increase $taskId"
+            message = Message().apply {
+                text = "lol"
+                chat = Chat(111, "test chat")
+            }
         }
     }
 }

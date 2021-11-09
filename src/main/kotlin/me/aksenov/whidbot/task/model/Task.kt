@@ -5,10 +5,11 @@ import java.time.Instant
 import javax.persistence.*
 
 @Entity
+@Table(name = "user_task")
 data class Task(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Int? = null,
+    val id: Long? = null,
     @Column
     val created: Timestamp = Timestamp.from(Instant.now()),
     @Column(name = "spent_minutes")

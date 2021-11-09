@@ -8,8 +8,16 @@ import org.springframework.stereotype.Service
 @Service
 class TaskService(private val taskDao: TaskDao) : Logger {
 
-    fun addTaskFrom(message: String, telegramId: String): Task =
+    fun addTask(message: String, telegramId: String): Task =
         taskDao.save(Task(message = message, telegramId = telegramId)).also { log.info("saved: $it") }
 
     fun getTasks(telegramId: String): List<Task> = taskDao.getAllByTelegramId(telegramId)
+
+    fun increaseTaskMinutes(taskId: Long, telegramId: String): Task? =
+        taskDao.getFirstByIdAndTelegramId(taskId, telegramId)?.let {
+            taskDao.increaseSpentMinutesForTask(it.id!!, it.spentMinutes + MINUTES_INCREASE)
+            taskDao.getById(it.id)
+        }
 }
+
+private const val MINUTES_INCREASE = 15
