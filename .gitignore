@@ -10,3 +10,4 @@ target/
 *.ipr
 
 /h2-data
+.mvn
