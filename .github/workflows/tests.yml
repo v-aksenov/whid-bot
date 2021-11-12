@@ -1,5 +1,5 @@
 env:
-  REGISTRY: "registry.digitalocean.com/your_registry"
+  REGISTRY: "registry.digitalocean.com/vv-aksenov-dodr"
   IMAGE_NAME: "whid_bot"
 
 name: Tests
