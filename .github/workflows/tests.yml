@@ -1,9 +1,13 @@
+env:
+  REGISTRY: "registry.digitalocean.com/your_registry"
+  IMAGE_NAME: "whid_bot"
+
 name: Tests
 
 on: [push]
 
 jobs:
-  build:
+  run-tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -15,19 +19,39 @@ jobs:
           java-version: '17'
           distribution: 'adopt'
 
-      - name: make mvnw executable
+      - name: Make mvnw executable
         run: chmod +x mvnw
 
-      - name: run tests
+      - name: Run tests
         run: make test
 
-      - name: publish code coverage
+      - name: Publish code coverage
         uses: paambaati/codeclimate-action@v3.0.0
         env:
-          # Set CC_TEST_REPORTER_ID as secret of your repo
           CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
           JACOCO_SOURCE_PATH: "${{github.workspace}}/src/main/kotlin"
         with:
-#          # The report file must be there, otherwise Code Climate won't find it
-#          coverageCommand: make test
           coverageLocations: ${{github.workspace}}/target/site/jacoco/jacoco.xml:jacoco
+
+  build_and_push:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs: run-tests
+
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v2
+
+      - name: Build container image
+        run: docker build -t $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7) .
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Log in to DigitalOcean Container Registry with short-lived credentials
+        run: doctl registry login --expiry-seconds 600
+
+      - name: Push image to DigitalOcean Container Registry
+        run: docker push $(echo $REGISTRY)/$(echo $IMAGE_NAME):$(echo $GITHUB_SHA | head -c7)
