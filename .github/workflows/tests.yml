@@ -16,7 +16,7 @@ jobs:
           distribution: 'adopt'
 
       - name: make mvnw executable
-        run: chmod -x mvnw
+        run: chmod +x mvnw
 
       - name: run tests
         run: make test
