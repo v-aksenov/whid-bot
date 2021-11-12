@@ -18,13 +18,16 @@ jobs:
       - name: make mvnw executable
         run: chmod -x mvnw
 
-      - name: Test & publish code coverage
+      - name: run tests
+        run: make test
+
+      - name: publish code coverage
         uses: paambaati/codeclimate-action@v3.0.0
         env:
           # Set CC_TEST_REPORTER_ID as secret of your repo
           CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
           JACOCO_SOURCE_PATH: "${{github.workspace}}/src/main/kotlin"
         with:
-          # The report file must be there, otherwise Code Climate won't find it
-          coverageCommand: make test
+#          # The report file must be there, otherwise Code Climate won't find it
+#          coverageCommand: make test
           coverageLocations: ${{github.workspace}}/target/site/jacoco/jacoco.xml:jacoco
