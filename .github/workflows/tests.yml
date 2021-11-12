@@ -16,7 +16,7 @@ jobs:
           distribution: 'adopt'
 
       - name: make mvnw executable
-        run: chmod -x ./mvnw
+        run: chmod -x mvnw
 
       - name: Test & publish code coverage
         uses: paambaati/codeclimate-action@v3.0.0
