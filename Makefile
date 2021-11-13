@@ -3,5 +3,5 @@ clean:
 test: clean
 	./mvnw test
 package:
-	./mvnw package -DskipTests
+	./mvnw package
 
