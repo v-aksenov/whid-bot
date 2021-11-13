@@ -13,8 +13,5 @@ jobs:
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
-      - name: Log in to DigitalOcean Container Registry with short-lived credentials
-        run: doctl auth init --access-token --expiry-seconds 600
-
       - name: test server docker
-        run: docker ps
+        run: doctl docker ps
