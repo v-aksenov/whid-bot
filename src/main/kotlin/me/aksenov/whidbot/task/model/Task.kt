@@ -1,5 +1,6 @@
 package me.aksenov.whidbot.task.model
 
+import me.aksenov.whidbot.utils.toHumanHours
 import java.sql.Timestamp
 import java.time.Instant
 import javax.persistence.*
@@ -25,15 +26,15 @@ data class Task(
     val updated: Timestamp = started
 ) {
 
-    fun toMessageBody(): String = message!!.substringBefore("\n[minutes spent ")
-        .let { "$it$SEPARATOR${spentMinutes}]\n${status.name}" }
+    fun toMessageBody(): String = message!!.substringBefore("\n[spent ")
+        .let { "$it$SEPARATOR${spentMinutes.toHumanHours()}]\n${status.name}" }
 
-    fun toMessageBodyWithoutStatus(): String = message!!.substringBefore("\n[minutes spent ")
-        .let { "$it$SEPARATOR${spentMinutes}]" }
+    fun toMessageBodyWithoutStatus(): String = message!!.substringBefore("\n[spent ")
+        .let { "$it$SEPARATOR${spentMinutes.toHumanHours()}]" }
 }
 
 enum class TaskStatus(val command: String, val text: String) {
     IN_PROGRESS("/in_progress", "Continue..."), STOPPED("/stop", "Stop")
 }
 
-private const val SEPARATOR = "\n[minutes spent "
+private const val SEPARATOR = "\n[spent "

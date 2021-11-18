@@ -6,6 +6,7 @@ import me.aksenov.whidbot.task.model.TaskStatus
 import me.aksenov.whidbot.utils.isContinue
 import me.aksenov.whidbot.utils.isGet
 import me.aksenov.whidbot.utils.isStop
+import me.aksenov.whidbot.utils.toHumanHours
 import org.springframework.stereotype.Service
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.Update
@@ -50,7 +51,7 @@ class BotService(private val taskService: TaskService) {
     private fun createMultiTaskMessage(tasks: List<Task>): String =
         tasks
             .joinToString("\n________\n\n") { it.toMessageBodyWithoutStatus() }
-            .plus("\n________\n\nSummary spent: ${tasks.sumOf { it.spentMinutes }}")
+            .plus("\n________\n\nSummary spent: \n${tasks.sumOf { it.spentMinutes }.toHumanHours()}")
 
     private fun convert(task: Task, nextStatus: TaskStatus = TaskStatus.STOPPED): SendMessage =
         SendMessage().apply {
