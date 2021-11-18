@@ -17,7 +17,7 @@ class Bot(
     private val objectMapper: ObjectMapper
 ) : TelegramLongPollingBot(), Logger {
 
-    @Scheduled(cron = "0 0 22 * * *")
+    @Scheduled(cron = "0 0 16 * * *")
     fun dailyTaskCheck() {
         log.info("start daily task sending")
         botService.getTodayTasks().forEach(::sendApiMethod)

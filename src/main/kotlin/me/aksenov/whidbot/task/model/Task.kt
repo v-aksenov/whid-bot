@@ -11,15 +11,24 @@ data class Task(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
     @Column
-    val created: Timestamp = Timestamp.from(Instant.now()),
+    val started: Timestamp = Timestamp.from(Instant.now()),
     @Column(name = "spent_minutes")
-    val spentMinutes: Int = 0,
+    val spentMinutes: Long = 0,
     @Column
     val message: String? = null,
     @Column(name = "telegram_id")
-    val telegramId: String? = null
+    val telegramId: String? = null,
+    @Column
+    @Enumerated(EnumType.STRING)
+    val status: TaskStatus = TaskStatus.IN_PROGRESS,
+    @Column
+    val updated: Timestamp = started
 ) {
 
-    fun toMessageBody(): String = message!!.substringBefore("\n\n[minutes spent ")
+    fun toMessageBody(): String = message!!.substringBefore("\n[minutes spent ")
         .let { "$it\n\n[minutes spent ${spentMinutes}]" }
+}
+
+enum class TaskStatus(val command: String, val text: String) {
+    IN_PROGRESS("/in_progress", "Continue..."), STOPPED("/stop", "Stop")
 }

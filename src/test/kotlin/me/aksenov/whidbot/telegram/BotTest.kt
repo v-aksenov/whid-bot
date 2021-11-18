@@ -8,6 +8,7 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import me.aksenov.whidbot.task.dao.TaskDao
+import me.aksenov.whidbot.task.model.TaskStatus
 import org.springframework.boot.test.context.SpringBootTest
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery
 import org.telegram.telegrambots.meta.api.objects.Chat
@@ -32,20 +33,36 @@ class BotTest(private val botService: BotService, private val taskDao: TaskDao) 
                 it.first() should { task ->
                     task.message shouldBe update.message.text
                     task.id shouldNotBe null
-                    task.created shouldNotBe null
+                    task.started shouldNotBe null
                     task.spentMinutes shouldBe 0
                     task.telegramId shouldBe update.message.chatId.toString()
                 }
             }
         }
-        test("increase task spent time") {
+        test("task stop") {
             botService.processUpdate(update)
 
             val id = taskDao.getAllByMessageAndTelegramId(update.message.text, update.message.chatId.toString())
                 .first().id!!
-            botService.processUpdate(updateIncreaseTime(id))
+            botService.processUpdate(updateStop(id))
 
-            taskDao.getById(id).spentMinutes shouldBe 15
+            taskDao.getById(id) should {
+                it.updated shouldNotBe it.started
+                it.status shouldBe TaskStatus.STOPPED
+            }
+        }
+        test("task continue") {
+            botService.processUpdate(update)
+
+            val id = taskDao.getAllByMessageAndTelegramId(update.message.text, update.message.chatId.toString())
+                .first().id!!
+            botService.processUpdate(updateStop(id))
+            botService.processUpdate(updateContinue(id))
+
+            taskDao.getById(id) should {
+                it.updated shouldNotBe it.started
+                it.status shouldBe TaskStatus.IN_PROGRESS
+            }
         }
         test("get today tasks") {
             botService.processUpdate(update)
@@ -67,9 +84,19 @@ class BotTest(private val botService: BotService, private val taskDao: TaskDao) 
         }
     }
 
-    private fun updateIncreaseTime(taskId: Long) = Update().apply {
+    private fun updateStop(taskId: Long) = Update().apply {
         callbackQuery = CallbackQuery().apply {
-            data = "/increase $taskId"
+            data = "${TaskStatus.STOPPED.command}$taskId"
+            message = Message().apply {
+                text = "lol"
+                chat = Chat(111, "test chat")
+            }
+        }
+    }
+
+    private fun updateContinue(taskId: Long) = Update().apply {
+        callbackQuery = CallbackQuery().apply {
+            data = "${TaskStatus.IN_PROGRESS.command}$taskId"
             message = Message().apply {
                 text = "lol"
                 chat = Chat(111, "test chat")
