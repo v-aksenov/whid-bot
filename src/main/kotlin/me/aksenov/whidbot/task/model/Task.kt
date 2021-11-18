@@ -26,9 +26,14 @@ data class Task(
 ) {
 
     fun toMessageBody(): String = message!!.substringBefore("\n[minutes spent ")
-        .let { "$it\n\n[minutes spent ${spentMinutes}]" }
+        .let { "$it$SEPARATOR${spentMinutes}]\n${status.name}" }
+
+    fun toMessageBodyWithoutStatus(): String = message!!.substringBefore("\n[minutes spent ")
+        .let { "$it$SEPARATOR${spentMinutes}]" }
 }
 
 enum class TaskStatus(val command: String, val text: String) {
     IN_PROGRESS("/in_progress", "Continue..."), STOPPED("/stop", "Stop")
 }
+
+private const val SEPARATOR = "\n[minutes spent "

@@ -27,8 +27,7 @@ class BotService(private val taskService: TaskService) {
     }
 
     fun getTodayTasks(): List<SendMessage> =
-        taskService.getTodayTasks()
-            .map { SendMessage(it.key, it.value.joinToString("\n") { task -> task.toMessageBody() }) }
+        taskService.getTodayTasks().map { SendMessage(it.key, createMultiTaskMessage(it.value)) }
 
     private fun handleStop(data: String, chatId: String): SendMessage {
         val taskId = data.substringAfter(TaskStatus.STOPPED.command).toLong()
@@ -42,13 +41,16 @@ class BotService(private val taskService: TaskService) {
         return if (stoppedTask != null) convert(stoppedTask, TaskStatus.STOPPED) else getDefaultUnknown(chatId)
     }
 
-    private fun handleGet(chatId: String): SendMessage {
-        val todayTasks = taskService.getTodayTasksFor(chatId)
-        val message = todayTasks
-            .joinToString("________\n") { it.toString() }
-            .plus(todayTasks.sumOf { it.spentMinutes })
-        return SendMessage(chatId, message)
-    }
+    private fun handleGet(chatId: String): SendMessage =
+        SendMessage(
+            chatId,
+            createMultiTaskMessage(taskService.getTodayTasksFor(chatId))
+        )
+
+    private fun createMultiTaskMessage(tasks: List<Task>): String =
+        tasks
+            .joinToString("\n________\n\n") { it.toMessageBodyWithoutStatus() }
+            .plus("\n________\n\nSummary spent: ${tasks.sumOf { it.spentMinutes }}")
 
     private fun convert(task: Task, nextStatus: TaskStatus = TaskStatus.STOPPED): SendMessage =
         SendMessage().apply {
