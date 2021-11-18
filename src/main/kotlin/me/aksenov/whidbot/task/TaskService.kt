@@ -25,8 +25,7 @@ class TaskService(private val taskDao: TaskDao) : Logger {
 
     fun continueTask(taskId: Long, telegramId: String): Task? =
         taskDao.getFirstByIdAndTelegramId(taskId, telegramId)?.let {
-            val lastSpent = it.spentMinutes + ChronoUnit.MINUTES.between(it.updated.toInstant(), now())
-            taskDao.update(it.id!!, lastSpent, TaskStatus.IN_PROGRESS)
+            taskDao.update(it.id!!, it.spentMinutes, TaskStatus.IN_PROGRESS)
             taskDao.getById(it.id)
         }
 
