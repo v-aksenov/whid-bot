@@ -30,17 +30,11 @@ class BotService(private val taskService: TaskService) {
     fun getTodayTasks(): List<SendMessage> =
         taskService.getTodayTasks().map { SendMessage(it.key, createMultiTaskMessage(it.value)) }
 
-    private fun handleStop(data: String, chatId: String): SendMessage {
-        val taskId = data.substringAfter(TaskStatus.STOPPED.command).toLong()
-        val stoppedTask = taskService.stopTask(taskId, chatId)
-        return stoppedTask?.toSendMessage(TaskStatus.IN_PROGRESS) ?: getMessageWithError(chatId)
-    }
+    private fun handleStop(data: String, chatId: String): SendMessage =
+        changeTaskStatus(data, chatId, TaskStatus.STOPPED, TaskStatus.IN_PROGRESS)
 
-    private fun handleContinue(data: String, chatId: String): SendMessage {
-        val taskId = data.substringAfter(TaskStatus.IN_PROGRESS.command).toLong()
-        val continuedTask = taskService.continueTask(taskId, chatId)
-        return continuedTask?.toSendMessage(TaskStatus.STOPPED) ?: getMessageWithError(chatId)
-    }
+    private fun handleContinue(data: String, chatId: String): SendMessage =
+        changeTaskStatus(data, chatId, TaskStatus.IN_PROGRESS, TaskStatus.STOPPED)
 
     private fun handleGet(chatId: String): SendMessage =
         SendMessage(
@@ -48,22 +42,41 @@ class BotService(private val taskService: TaskService) {
             createMultiTaskMessage(taskService.getTodayTasksFor(chatId))
         )
 
+    private fun changeTaskStatus(data: String, chatId: String, from: TaskStatus, to: TaskStatus): SendMessage {
+        val taskId = data.substringAfter(from.command).toLong()
+        val stoppedTask = taskService.stopTask(taskId, chatId)
+        return stoppedTask?.toSendMessage(to) ?: getMessageWithError(chatId)
+    }
+
     private fun createMultiTaskMessage(tasks: List<Task>): String =
         tasks
-            .joinToString("\n________\n\n") { it.toMessageBodyWithoutStatus() }
-            .plus("\n________\n\nSummary spent: \n${tasks.sumOf { it.spentMinutes }.toHumanHours()}")
+            .joinToString(MESSAGE_SEPARATOR) { it.toMessageBodyWithoutStatus() }
+            .plus(SUMMARY_SPENT_TEMPLATE.format(tasks.sumOf { it.spentMinutes }.toHumanHours()))
 
     private fun Task.toSendMessage(nextStatus: TaskStatus = TaskStatus.STOPPED): SendMessage =
-    SendMessage().apply {
-        chatId = telegramId!!
-        text = toMessageBody()
-        replyMarkup = InlineKeyboardMarkup(listOf(listOf(
-            InlineKeyboardButton().apply {
-                text = nextStatus.text
-                callbackData = "${nextStatus.command}${id}"
-            }
-        )))
-    }
+        SendMessage().apply {
+            chatId = telegramId!!
+            text = toMessageBody()
+            replyMarkup = InlineKeyboardMarkup(listOf(listOf(
+                InlineKeyboardButton().apply {
+                    text = nextStatus.text
+                    callbackData = "${nextStatus.command}${id}"
+                }
+            )))
+        }
 
     private fun getMessageWithError(chatId: String): SendMessage = SendMessage(chatId, "unknown task")
 }
+
+private const val MESSAGE_SEPARATOR = """
+__________
+
+
+"""
+
+private const val SUMMARY_SPENT_TEMPLATE = """
+__________
+
+Summary spent: 
+%s
+"""
