@@ -23,7 +23,7 @@ class BotService(private val taskService: TaskService) {
             update.isGet() -> handleGet(chatId)
             update.isStop() -> handleStop(update.callbackQuery.data, chatId)
             update.isContinue() -> handleContinue(update.callbackQuery.data, chatId)
-            else -> convert(taskService.addTask(message.text, chatId))
+            else -> taskService.addTask(message.text, chatId).toSendMessage()
         }
     }
 
@@ -33,13 +33,13 @@ class BotService(private val taskService: TaskService) {
     private fun handleStop(data: String, chatId: String): SendMessage {
         val taskId = data.substringAfter(TaskStatus.STOPPED.command).toLong()
         val stoppedTask = taskService.stopTask(taskId, chatId)
-        return if (stoppedTask != null) convert(stoppedTask, TaskStatus.IN_PROGRESS) else getDefaultUnknown(chatId)
+        return stoppedTask?.toSendMessage(TaskStatus.IN_PROGRESS) ?: getMessageWithError(chatId)
     }
 
     private fun handleContinue(data: String, chatId: String): SendMessage {
         val taskId = data.substringAfter(TaskStatus.IN_PROGRESS.command).toLong()
-        val stoppedTask = taskService.continueTask(taskId, chatId)
-        return if (stoppedTask != null) convert(stoppedTask, TaskStatus.STOPPED) else getDefaultUnknown(chatId)
+        val continuedTask = taskService.continueTask(taskId, chatId)
+        return continuedTask?.toSendMessage(TaskStatus.STOPPED) ?: getMessageWithError(chatId)
     }
 
     private fun handleGet(chatId: String): SendMessage =
@@ -65,5 +65,17 @@ class BotService(private val taskService: TaskService) {
             )))
         }
 
-    private fun getDefaultUnknown(chatId: String): SendMessage = SendMessage(chatId, "unknown task")
+    private fun Task.toSendMessage(nextStatus: TaskStatus = TaskStatus.STOPPED): SendMessage =
+    SendMessage().apply {
+        chatId = telegramId!!
+        text = toMessageBody()
+        replyMarkup = InlineKeyboardMarkup(listOf(listOf(
+            InlineKeyboardButton().apply {
+                text = nextStatus.text
+                callbackData = "${nextStatus.command}${id}"
+            }
+        )))
+    }
+
+    private fun getMessageWithError(chatId: String): SendMessage = SendMessage(chatId, "unknown task")
 }
