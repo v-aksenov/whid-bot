@@ -11,8 +11,10 @@ import java.time.temporal.ChronoUnit
 @Service
 class TaskService(private val taskDao: TaskDao) : Logger {
 
-    fun addTask(message: String, telegramId: String): Task =
-        taskDao.save(Task(message = message, telegramId = telegramId)).also { log.info("saved: $it") }
+    fun addTask(message: String, telegramId: String): Task {
+        taskDao.getFirstByTelegramId(telegramId)?.let { stopTask(it.id!!, telegramId) }
+        return taskDao.save(Task(message = message, telegramId = telegramId)).also { log.info("saved: $it") }
+    }
 
     fun getTodayTasksFor(telegramId: String): List<Task> = taskDao.getTodayTasksByTelegramId(telegramId)
 

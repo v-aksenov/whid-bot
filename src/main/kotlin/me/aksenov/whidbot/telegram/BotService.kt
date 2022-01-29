@@ -30,23 +30,23 @@ class BotService(private val taskService: TaskService) {
     fun getTodayTasks(): List<SendMessage> =
         taskService.getTodayTasks().map { SendMessage(it.key, createMultiTaskMessage(it.value)) }
 
-    private fun handleStop(data: String, chatId: String): SendMessage =
-        changeTaskStatus(data, chatId, TaskStatus.STOPPED, TaskStatus.IN_PROGRESS)
+    private fun handleStop(data: String, chatId: String): SendMessage {
+        val taskId = data.substringAfter(TaskStatus.STOPPED.command).toLong()
+        val task = taskService.stopTask(taskId, chatId)
+        return task?.toSendMessage(TaskStatus.IN_PROGRESS) ?: getMessageWithError(chatId)
+    }
 
-    private fun handleContinue(data: String, chatId: String): SendMessage =
-        changeTaskStatus(data, chatId, TaskStatus.IN_PROGRESS, TaskStatus.STOPPED)
+    private fun handleContinue(data: String, chatId: String): SendMessage {
+        val taskId = data.substringAfter(TaskStatus.IN_PROGRESS.command).toLong()
+        val task = taskService.continueTask(taskId, chatId)
+        return task?.toSendMessage(TaskStatus.STOPPED) ?: getMessageWithError(chatId)
+    }
 
     private fun handleGet(chatId: String): SendMessage =
         SendMessage(
             chatId,
             createMultiTaskMessage(taskService.getTodayTasksFor(chatId))
         )
-
-    private fun changeTaskStatus(data: String, chatId: String, from: TaskStatus, to: TaskStatus): SendMessage {
-        val taskId = data.substringAfter(from.command).toLong()
-        val stoppedTask = taskService.stopTask(taskId, chatId)
-        return stoppedTask?.toSendMessage(to) ?: getMessageWithError(chatId)
-    }
 
     private fun createMultiTaskMessage(tasks: List<Task>): String =
         tasks
@@ -56,7 +56,7 @@ class BotService(private val taskService: TaskService) {
     private fun Task.toSendMessage(nextStatus: TaskStatus = TaskStatus.STOPPED): SendMessage =
         SendMessage().apply {
             chatId = telegramId!!
-            text = toMessageBody()
+            text = MESSAGE_TEMPLATE.format(toMessageBody())
             replyMarkup = InlineKeyboardMarkup(listOf(listOf(
                 InlineKeyboardButton().apply {
                     text = nextStatus.text
@@ -67,6 +67,11 @@ class BotService(private val taskService: TaskService) {
 
     private fun getMessageWithError(chatId: String): SendMessage = SendMessage(chatId, "unknown task")
 }
+
+private const val MESSAGE_TEMPLATE = """Last task stopped.
+Current task:
+%s
+"""
 
 private const val MESSAGE_SEPARATOR = """
 __________

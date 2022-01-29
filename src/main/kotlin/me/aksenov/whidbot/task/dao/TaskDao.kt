@@ -17,6 +17,8 @@ interface TaskDao : JpaRepository<Task, Long> {
 
     fun getFirstByIdAndTelegramId(id: Long, telegramId: String): Task?
 
+    fun getFirstByTelegramId(telegramId: String): Task?
+
     @Modifying
     @Query("update Task t set t.spentMinutes = :spentMinutes, t.updated = CURRENT_TIMESTAMP, t.status = :status where t.id = :id")
     fun update(@Param("id") id: Long, @Param("spentMinutes") spentMinutes: Long, @Param("status") status: TaskStatus)
