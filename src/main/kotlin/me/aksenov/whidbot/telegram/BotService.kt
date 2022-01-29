@@ -53,18 +53,6 @@ class BotService(private val taskService: TaskService) {
             .joinToString("\n________\n\n") { it.toMessageBodyWithoutStatus() }
             .plus("\n________\n\nSummary spent: \n${tasks.sumOf { it.spentMinutes }.toHumanHours()}")
 
-    private fun convert(task: Task, nextStatus: TaskStatus = TaskStatus.STOPPED): SendMessage =
-        SendMessage().apply {
-            chatId = task.telegramId!!
-            text = task.toMessageBody()
-            replyMarkup = InlineKeyboardMarkup(listOf(listOf(
-                InlineKeyboardButton().apply {
-                    text = nextStatus.text
-                    callbackData = "${nextStatus.command}${task.id}"
-                }
-            )))
-        }
-
     private fun Task.toSendMessage(nextStatus: TaskStatus = TaskStatus.STOPPED): SendMessage =
     SendMessage().apply {
         chatId = telegramId!!
